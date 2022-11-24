@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: AddEditForm/AddEditForm.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: AddEditForm/AddEditForm.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState } from 'react';
+import Button from '../UI/Button/Button';
+import DateInput from '../UI/DateInput/DateInput';
+import FileInput from '../UI/FileInput/FileInput';
+import File from '../UI/File/File';
+import FilesList from '../FilesList/FilesList';
+import Headline2 from '../UI/Headline2/Headline2';
+import Input from '../UI/Input/Input';
+import TextArea from '../UI/TextArea/TextArea';
+import style from './AddEditForm.module.less';
+import axios from 'axios';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
+
+/**
+ * Add/Edit task form component
+ * @param {Object} props Component props
+ * @param {Object} props.taskForEdit Task component values to edit
+ * @param {boolean} props.isEdit Sets "Editing" or "Adding" mode of form
+ * @param {function(Object): void} props.addTask Adds task to ToDo List
+ * @param {function(Object): void} props.editTask Edits task in ToDo List
+ * @returns {JSX.Element} Add/Edit form element
+ * @example
+ * return (
+ *   &lt;AddEditForm
+ *     className='List__form'
+ *     addTask={addTask}
+ *     editTask={editTask}
+ *     taskForEdit={taskForEdit}
+ *     isEdit={isEdit}
+ *   />
+ * )
+ */
+function AddEditForm({ taskForEdit, isEdit, addTask, editTask }) {
+  const [task, setTask] = useState({
+    id: isEdit ? taskForEdit.id : Date.now(),
+    completed: isEdit ? taskForEdit.completed : false,
+    expire: taskForEdit.expire,
+    name: taskForEdit.name,
+    description: taskForEdit.description,
+    files: [...taskForEdit.files],
+  });
+  const [newFiles, setNewFiles] = useState([]);
+  const [oldFiles, setOldFiles] = useState([]);
+  const [fileInputKey, setFileInputKey] = useState(Date.now());
+  const [valid, setValid] = useState({ name: true, expire: true });
+
+  const uploadFiles = isEdit => {
+    let formData = new FormData();
+    formData.append('id', task.id);
+    formData.append('completed', task.completed);
+    formData.append('expire', task.expire);
+    formData.append('name', task.name);
+    formData.append('description', task.description);
+    if (task.files.length) {
+      for (const file of task.files) {
+        formData.append('files', file);
+      }
+    } else {
+      formData.append('files', []);
+    }
+    for (const newFile of newFiles) {
+      formData.append('newFiles', newFile);
+    }
+
+    if (isEdit) {
+      axios.post('/update', formData, {
+        headers: {
+          'X-HTTP-Method-Override': 'PUT',
+        },
+      });
+    } else {
+      axios.post('/create', formData);
+    }
+  };
+
+  const clearFileInput = e => {
+    e.preventDefault();
+    const filesNotToClear = task.files.filter(
+      file => oldFiles.indexOf(file) !== -1
+    );
+    setTask({ ...task, files: filesNotToClear });
+    setNewFiles([]);
+    setOldFiles([]);
+    setFileInputKey(Date.now());
+  };
+
+  const deleteFile = filename => {
+    const filteredFiles = task.files.filter(file => file !== filename);
+    setTask({ ...task, files: filteredFiles });
+
+    const dt = new DataTransfer();
+    for (const file of newFiles) {
+      if (file.name !== filename) {
+        dt.items.add(file);
+      }
+    }
+    setNewFiles(dt.files);
+  };
+
+  const handleSubmit = e => {
+    e.preventDefault();
+
+    let validity = true;
+    const newValid = { name: true, expire: true };
+    for (const key in valid) {
+      if (task[key] === '') {
+        newValid[key] = false;
+        validity = false;
+      }
+      console.log(newValid);
+    }
+    console.log(validity);
+    setValid(newValid);
+    if (validity === false) return;
+
+    isEdit ? editTask(task) : addTask(task);
+
+    uploadFiles(isEdit);
+
+    setTask({
+      expire: '',
+      name: '',
+      description: '',
+      files: [],
+    });
+    setNewFiles([]);
+  };
+
+  const handleDateChange = e => {
+    setValid({ ...valid, expire: true });
+    let expire = '';
+    if (e.target.value !== '') {
+      expire = dayjs(e.target.value).utc().format();
+    }
+    setTask({ ...task, expire });
+  };
+
+  const handleFilesChange = e => {
+    const oldFiles = [];
+    const changedFiles = [...task.files];
+    for (const file of Object.values(e.target.files)) {
+      if (task.files.indexOf(file.name) === -1) {
+        changedFiles.push(file.name);
+      } else {
+        oldFiles.push(file.name);
+      }
+    }
+    setTask({ ...task, files: changedFiles });
+    setNewFiles(e.target.files);
+    setOldFiles(oldFiles);
+  };
+
+  return (
+    &lt;form
+      className={style.AddEditForm}
+      onSubmit={handleSubmit}
+    >
+      &lt;Headline2 className={style.AddEditForm__headline}>
+        {isEdit ? 'Edit' : 'Add'} Task
+      &lt;/Headline2>
+      &lt;div className={style.AddEditForm__content}>
+        &lt;div className={style.AddEditForm__col}>
+          &lt;Input
+            className={style.AddEditForm__item}
+            type='text'
+            placeholder='Task'
+            value={task.name}
+            onChange={e => {
+              setTask({ ...task, name: e.target.value });
+              setValid({ ...valid, name: true });
+            }}
+            valid={valid.name}
+          />
+          &lt;TextArea
+            className={style.AddEditForm__textarea}
+            placeholder='Description'
+            value={task.description}
+            onChange={e => setTask({ ...task, description: e.target.value })}
+          />
+        &lt;/div>
+        &lt;div className={style.AddEditForm__col}>
+          &lt;DateInput
+            className={`${style.AddEditForm__datetime} ${style.AddEditForm__item}`}
+            value={dayjs.utc(task.expire).local().format('YYYY-MM-DDTHH:mm')}
+            onChange={handleDateChange}
+            valid={valid.expire}
+          />
+          &lt;FileInput
+            key={fileInputKey}
+            newFiles={newFiles}
+            className={style.AddEditForm__item}
+            onChange={handleFilesChange}
+            clearFileInput={clearFileInput}
+          />
+          {task.files.length > 0 &amp;&amp; (
+            &lt;FilesList className={style.AddEditForm__files}>
+              {task.files.map((file, i) => (
+                &lt;File
+                  deleteFile={deleteFile}
+                  isCanBeDeleted={true}
+                  className={style.AddEditForm__file}
+                  key={i}
+                >
+                  {file}
+                &lt;/File>
+              ))}
+            &lt;/FilesList>
+          )}
+          &lt;Button className={style.AddEditForm__button}>
+            {isEdit ? 'Done' : 'Add'}
+          &lt;/Button>
+        &lt;/div>
+      &lt;/div>
+    &lt;/form>
+  );
+}
+
+export default AddEditForm;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AddEditForm">AddEditForm</a></li><li><a href="global.html#Button">Button</a></li><li><a href="global.html#Checkbox">Checkbox</a></li><li><a href="global.html#Container">Container</a></li><li><a href="global.html#DateInput">DateInput</a></li><li><a href="global.html#File">File</a></li><li><a href="global.html#FileInput">FileInput</a></li><li><a href="global.html#FilesList">FilesList</a></li><li><a href="global.html#Headline1">Headline1</a></li><li><a href="global.html#Headline2">Headline2</a></li><li><a href="global.html#Headline3">Headline3</a></li><li><a href="global.html#IconButton">IconButton</a></li><li><a href="global.html#Input">Input</a></li><li><a href="global.html#Label">Label</a></li><li><a href="global.html#Loader">Loader</a></li><li><a href="global.html#Modal">Modal</a></li><li><a href="global.html#Paragraph">Paragraph</a></li><li><a href="global.html#RoundButton">RoundButton</a></li><li><a href="global.html#TextArea">TextArea</a></li><li><a href="global.html#ToDoItem">ToDoItem</a></li><li><a href="global.html#ToDoList">ToDoList</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Thu Nov 24 2022 20:05:42 GMT+0700 (Новосибирск, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

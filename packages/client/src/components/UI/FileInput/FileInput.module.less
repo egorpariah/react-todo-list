@@ -1,0 +1,46 @@
+@import '../../../assets/less/_variables.less';
+
+.FileInput {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-family: 'Roboto', Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  border-radius: 16px;
+  background: @lightGray;
+  padding: 16px;
+  height: 48px;
+  outline: none;
+  color: @purple;
+  position: relative;
+  white-space: nowrap;
+
+  &--empty {
+    padding-left: 48px;
+    &::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 24px;
+      position: absolute;
+      left: 16px;
+      top: 12px;
+      background: url('../../../assets/svg/attach.svg') center center no-repeat;
+    }
+  }
+
+  &__input {
+    display: none;
+  }
+
+  &__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    fill: @purple;
+    margin-right: 8px;
+  }
+}

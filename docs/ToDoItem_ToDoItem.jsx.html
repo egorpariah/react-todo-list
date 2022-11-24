@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: ToDoItem/ToDoItem.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: ToDoItem/ToDoItem.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import FilesList from '../FilesList/FilesList';
+import Checkbox from '../UI/Checkbox/Checkbox';
+import Label from '../UI/Label/Label';
+import File from '../UI/File/File';
+import Headline3 from '../UI/Headline3/Headline3';
+import IconButton from '../UI/IconButton/IconButton';
+import Paragraph from '../UI/Paragraph/Paragraph';
+import style from './ToDoItem.module.less';
+import { ReactComponent as Edit } from '../../assets/svg/edit.svg';
+import { ReactComponent as Trash } from '../../assets/svg/trash.svg';
+import '../../assets/less/_variables.less';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+
+/**
+ * ToDo list item
+ * @param {Object} props Component props
+ * @param {string} [props.className] External CSS classes
+ * @param {Object} props.task Task object with data
+ * @param {function(Object): void} props.openEditForm Opens AddEditForm in "Edit" mode
+ * @param {function(boolean, Object): void} props.setCompleted Sets taks completed
+ * @param {function(number): void} props.removeTask Removes task from ToDo List
+ * @returns {JSX.Element} ToDo list item element
+ * @example
+ * return (
+ *   &lt;ToDoItem
+ *     className='ToDoList__item'
+ *     task={task}
+ *     openEditForm={openEditForm}
+ *     setCompleted={setCompleted}
+ *     removeTask={removeTask}
+ *   />
+ * )
+ */
+function ToDoItem({ task, className, openEditForm, setCompleted, removeTask }) {
+  const expired = useMemo(
+    () => dayjs().isAfter(dayjs.utc(task.expire).local()),
+    [task.expire]
+  );
+
+  const navigate = useNavigate();
+
+  return (
+    &lt;li
+      className={className ? `${style.ToDoItem} ${className}` : style.ToDoItem}
+    >
+      &lt;Checkbox
+        className={style.ToDoItem__checkbox}
+        id={`task-${task.id}`}
+        checked={task.completed}
+        onChange={e => setCompleted(e.target.checked, task)}
+      />
+      &lt;div
+        className={
+          task.completed || expired
+            ? `${style.ToDoItem__wrapper} ${style['ToDoItem__wrapper--completed']}`
+            : style.ToDoItem__wrapper
+        }
+      >
+        &lt;div className={style.ToDoItem__content}>
+          &lt;Label className={style.ToDoItem__date}>
+            {dayjs.utc(task.expire).local().format('dddd, D MMM YYYY HH:mm')}
+          &lt;/Label>
+          &lt;Headline3
+            className={style.ToDoItem__headline}
+            onClick={() =>
+              navigate(`/tasks/${task.id}`, {
+                state: { task },
+              })
+            }
+          >
+            {task.name}
+          &lt;/Headline3>
+          {task.description.length > 0 &amp;&amp; (
+            &lt;Paragraph className={style.ToDoItem__description}>
+              {task.description}
+            &lt;/Paragraph>
+          )}
+          {task.files.length > 0 &amp;&amp; (
+            &lt;FilesList>
+              {task.files.map((file, i) => (
+                &lt;File
+                  taskId={task.id}
+                  className={style.ToDoItem__file}
+                  completed={task.completed}
+                  expired={expired}
+                  key={i}
+                >
+                  {file}
+                &lt;/File>
+              ))}
+            &lt;/FilesList>
+          )}
+        &lt;/div>
+        &lt;div className={style.ToDoItem__buttons}>
+          &lt;IconButton
+            className={style.ToDoItem__button}
+            modifier='edit'
+            onClick={() => openEditForm(task)}
+          >
+            &lt;Edit className={style.ToDoItem__edit} />
+          &lt;/IconButton>
+          &lt;IconButton
+            className={style.ToDoItem__button}
+            modifier='trash'
+            onClick={() => removeTask(task.id)}
+          >
+            &lt;Trash className={style.ToDoItem__trash} />
+          &lt;/IconButton>
+        &lt;/div>
+      &lt;/div>
+    &lt;/li>
+  );
+}
+
+export default ToDoItem;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AddEditForm">AddEditForm</a></li><li><a href="global.html#Button">Button</a></li><li><a href="global.html#Checkbox">Checkbox</a></li><li><a href="global.html#Container">Container</a></li><li><a href="global.html#DateInput">DateInput</a></li><li><a href="global.html#File">File</a></li><li><a href="global.html#FileInput">FileInput</a></li><li><a href="global.html#FilesList">FilesList</a></li><li><a href="global.html#Headline1">Headline1</a></li><li><a href="global.html#Headline2">Headline2</a></li><li><a href="global.html#Headline3">Headline3</a></li><li><a href="global.html#IconButton">IconButton</a></li><li><a href="global.html#Input">Input</a></li><li><a href="global.html#Label">Label</a></li><li><a href="global.html#Loader">Loader</a></li><li><a href="global.html#Modal">Modal</a></li><li><a href="global.html#Paragraph">Paragraph</a></li><li><a href="global.html#RoundButton">RoundButton</a></li><li><a href="global.html#TextArea">TextArea</a></li><li><a href="global.html#ToDoItem">ToDoItem</a></li><li><a href="global.html#ToDoList">ToDoList</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Thu Nov 24 2022 20:05:42 GMT+0700 (Новосибирск, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

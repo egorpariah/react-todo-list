@@ -1,0 +1,21 @@
+@import '../../../assets/less/_variables.less';
+
+.Input {
+  font-family: 'Roboto', Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  border-radius: 16px;
+  background: @lightGray;
+  padding: 16px;
+  height: 48px;
+  outline: none;
+  color: @dark;
+
+  &::placeholder {
+    color: @purple;
+  }
+
+  &--error {
+    outline: 1px solid @red;
+    background: fade(@red, 10%);
+  }
+}
