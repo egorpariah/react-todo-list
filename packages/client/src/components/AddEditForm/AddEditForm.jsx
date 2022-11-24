@@ -110,9 +110,7 @@ function AddEditForm({ taskForEdit, isEdit, addTask, editTask }) {
         newValid[key] = false;
         validity = false;
       }
-      console.log(newValid);
     }
-    console.log(validity);
     setValid(newValid);
     if (validity === false) return;
 

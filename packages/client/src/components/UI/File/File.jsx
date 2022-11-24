@@ -39,12 +39,16 @@ function File({
           }
         />
       )) || <div className={style.File__circle}></div>}
-      <a
-        href={`/uploads/${taskId}/${children}`}
-        className={style.File__name}
-      >
-        {children}
-      </a>
+      {isCanBeDeleted ? (
+        <span className={style.File__name}>{children}</span>
+      ) : (
+        <a
+          href={`/uploads/${taskId}/${children}`}
+          className={`${style.File__name} ${style['File__name--link']}`}
+        >
+          {children}
+        </a>
+      )}
       {isCanBeDeleted && (
         <SmallCross
           onClick={() => deleteFile(children)}

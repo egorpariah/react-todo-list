@@ -14,8 +14,9 @@ const setConnection = async () => {
 };
 
 export async function createTaskInDatabase(task) {
-  const connection = await setConnection();
+  let connection;
   try {
+    connection = await setConnection();
     await connection.query(
       `INSERT INTO todolist(id, completed, expire, name, description, files) VALUES (${
         task.id
@@ -23,17 +24,18 @@ export async function createTaskInDatabase(task) {
         task.description
       }', '${task.files.join(', ')}')`
     );
+    await connection.end();
   } catch (error) {
     console.error(`Error: ${error.message}`);
   } finally {
-    await connection.end();
     console.log('> Connection has been closed');
   }
 }
 
 export async function readTasksFromDatabase() {
-  const connection = await setConnection();
+  let connection;
   try {
+    connection = await setConnection();
     const [result] = await connection.query('SELECT * FROM todolist');
     result.map(task => {
       task.completed ? (task.completed = true) : (task.completed = false);
@@ -43,18 +45,19 @@ export async function readTasksFromDatabase() {
       }
       return task;
     });
+    await connection.end();
     return result;
   } catch (error) {
     console.error(`Error: ${error.message}`);
   } finally {
-    await connection.end();
     console.log('> Connection has been closed');
   }
 }
 
 export async function updateTaskInDatabase(editedTask) {
-  const connection = await setConnection();
+  let connection;
   try {
+    connection = await setConnection();
     await connection.query(
       `UPDATE todolist SET completed = ${editedTask.completed}, expire = '${
         editedTask.expire
@@ -66,22 +69,23 @@ export async function updateTaskInDatabase(editedTask) {
           : editedTask.files
       }' WHERE id = ${editedTask.id}`
     );
+    await connection.end();
   } catch (error) {
     console.error(`Error: ${error.message}`);
   } finally {
-    await connection.end();
     console.log('> Connection has been closed');
   }
 }
 
 export async function deleteTaskFromDatabase(taskId) {
-  const connection = await setConnection();
+  let connection;
   try {
+    connection = await setConnection();
     await connection.query(`DELETE FROM todolist WHERE id = ${taskId}`);
+    await connection.end();
   } catch (error) {
     console.error(`Error: ${error.message}`);
   } finally {
-    await connection.end();
     console.log('> Connection has been closed');
   }
 }
